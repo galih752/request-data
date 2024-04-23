@@ -1,61 +1,62 @@
-from logging import handlers
 import logging
+from logging import handlers
 import requests
 import s3fs
 from loguru import logger
-
 from aiohttp import ClientSession
 from enum import Enum
 from datetime import datetime
 from time import time
 from json import dumps
+from concurrent.futures import ThreadPoolExecutor
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [ %(levelname)s ] :: %(message)s',
                 datefmt="%Y-%m-%dT%H:%M:%S", handlers=[
-    handlers.RotatingFileHandler(f'JawaTimur.log'),
+    handlers.RotatingFileHandler(f'BALI_GORONTALO_LUAR_NEGERI_MALUKU_MALUKU_UTARA_NUSA_TENGGARA_BARAT_NUSA_TENGGARA_TIMUR.log'),
     logging.StreamHandler()
 ])
 
+
 class Province(Enum):
-    ACEH = "11"
+    # ACEH = "11"
     BALI = "51"
-    BANTEN = "36"
-    BENGKULU = "17"
-    DAERAH_ISTIMEWA_YOGYAKARTA = "34"
-    DKI_JAKARTA = "31"
+    # BANTEN = "36"
+    # BENGKULU = "17"
+    # DAERAH_ISTIMEWA_YOGYAKARTA = "34"
+    # DKI_JAKARTA = "31"
     GORONTALO = "75"
-    JAMBI = "15"
-    JAWA_BARAT = "32"
-    JAWA_TENGAH = "33"
-    JAWA_TIMUR = "35"
-    KALIMANTAN_BARAT = "61"
-    KALIMANTAN_SELATAN = "63"
-    KALIMANTAN_TENGAH = "62"
-    KALIMANTAN_TIMUR = "64"
-    KALIMANTAN_UTARA = "65"
-    KEPULAUAN_BANGKA_BELITUNG = "19"
-    KEPULAUAN_RIAU = "21"
-    LAMPUNG = "18"
+    # JAMBI = "15"
+    # JAWA_BARAT = "32"
+    # JAWA_TENGAH = "33"
+    # JAWA_TIMUR = "35"
+    # KALIMANTAN_BARAT = "61"
+    # KALIMANTAN_SELATAN = "63"
+    # KALIMANTAN_TENGAH = "62"
+    # KALIMANTAN_TIMUR = "64"
+    # KALIMANTAN_UTARA = "65"
+    # KEPULAUAN_BANGKA_BELITUNG = "19"
+    # KEPULAUAN_RIAU = "21"
+    # LAMPUNG = "18"
     LUAR_NEGERI = "99"
     MALUKU = "81"
     MALUKU_UTARA = "82"
     NUSA_TENGGARA_BARAT = "52"
     NUSA_TENGGARA_TIMUR = "53"
-    PAPUA = "91"
-    PAPUA_BARAT = "92"
-    PAPUA_BARAT_DAYA = "96"
-    PAPUA_PEGUNUNGAN = "95"
-    PAPUA_SELATAN = "93"
-    PAPUA_TENGAH = "94"
-    RIAU = "14"
-    SULAWESI_BARAT = "76"
-    SULAWESI_SELATAN = "73"
-    SULAWESI_TENGAH = "72"
-    SULAWESI_TENGGARA = "74"
-    SULAWESI_UTARA = "71"
-    SUMATERA_BARAT = "13"
-    SUMATERA_SELATAN = "16"
-    SUMATERA_UTARA = "12"
+    # PAPUA = "91"
+    # PAPUA_BARAT = "92"
+    # PAPUA_BARAT_DAYA = "96"
+    # PAPUA_PEGUNUNGAN = "95"
+    # PAPUA_SELATAN = "93"
+    # PAPUA_TENGAH = "94"
+    # RIAU = "14"
+    # SULAWESI_BARAT = "76"
+    # SULAWESI_SELATAN = "73"
+    # SULAWESI_TENGAH = "72"
+    # SULAWESI_TENGGARA = "74"
+    # SULAWESI_UTARA = "71"
+    # SUMATERA_BARAT = "13"
+    # SUMATERA_SELATAN = "16"
+    # SUMATERA_UTARA = "12"
   
 class Kpu():
     def __init__(self) -> None:
@@ -78,7 +79,7 @@ class Kpu():
     def download(self, tps_image, name_image):
         with self.__s3.open(name_image, 'wb') as file:
             file.write(requests.get(tps_image).content)
-            print(f"Success save {name_image} in s3.")
+            logger.success(f"Success save {name_image} in s3.")
         
     @filter_name_kode 
     def __get_kabupaten(self, kode_provinsi):
@@ -148,8 +149,20 @@ class Kpu():
                                     indent=4
                                 )
                             )
-                        print(f"Success save {nama_json} in s3.")
+                        logger.success(f"Success save {nama_json} in s3.")
+        
+    def get_banyak(self):
+        with ThreadPoolExecutor() as executor:
+            executor.map(self.get_detail_by_province,[
+                Province.BALI,
+                Province.GORONTALO,
+                Province.LUAR_NEGERI,
+                Province.MALUKU,
+                Province.MALUKU_UTARA,
+                Province.NUSA_TENGGARA_BARAT,
+                Province.NUSA_TENGGARA_TIMUR
+            ])
 
 if(__name__ == '__main__'):
-    import asyncio
-    Kpu().get_detail_by_province(Province.JAWA_TIMUR)
+    # Kpu().get_detail_by_province(Province.KEPULAUAN_BANGKA_BELITUNG)
+    Kpu().get_banyak()
